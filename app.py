@@ -1,6 +1,7 @@
 import json, itertools, collections, io, csv
 from datetime import date
 from dynamic_engine import fetch_season, anchored_scenario
+from validation import audit_history
 from pathlib import Path
 import pandas as pd
 import streamlit as st
@@ -69,7 +70,7 @@ def simulate(winners_tuple,npi_tuple):
 
 st.sidebar.title('⚽ UCCS CONTROL CENTER')
 st.sidebar.caption('2026 NCAA Division II Men’s Soccer · Super Region 4')
-st.sidebar.warning('Model baseline: Nov 1, 2026. Fixed NPI unless you supply updated ratings. Not official NCAA selection odds.')
+st.sidebar.warning('Nov 1, 2026 snapshot. Dynamic NPI is blocked until validated. Tournament bids are illustrative only.')
 st.sidebar.divider()
 st.sidebar.subheader('Save / restore your picks')
 state={'winners':st.session_state.winners,'npi':st.session_state.npi}
@@ -102,11 +103,16 @@ pending=sum(w is None for _,_,_,w in rows)
 npi=st.session_state.npi.copy()
 scenario=selected_games(rows)
 coverage={}
-if st.session_state.mode=='Experimental dynamic NPI' and st.session_state.history:
- with st.spinner('Recalculating opponent network for the entered results…'):
-  npi,coverage=scenario_ratings(json.dumps(st.session_state.history,sort_keys=True),json.dumps(scenario,sort_keys=True),json.dumps(st.session_state.npi,sort_keys=True))
-if st.session_state.mode=='Experimental dynamic NPI' and not st.session_state.history:
- st.error('DYNAMIC NPI NOT ACTIVE: no historical game database has been loaded. The numbers below are unchanged baseline ratings, NOT recalculated ratings. Go to Data & Accuracy and import completed games. If the import fails, the site cannot calculate scenario NPI.')
+validation=audit_history(st.session_state.history,st.session_state.npi,st.session_state.import_audit)
+# FAIL CLOSED: never feed an unverified experimental rating into projected bids.
+# The provisional field below is ALWAYS based on the published snapshot or manually edited NPIs.
+if st.session_state.mode=='Experimental dynamic NPI':
+ st.error('DYNAMIC NPI PROJECTIONS DISABLED — imported historical data and the calculation have not passed NCAA baseline validation. Displaying snapshot-based ratings and a FIXED-NPI illustrative field, not recalculated tournament NPIs.')
+ if st.session_state.history:
+  with st.expander('Why dynamic projections are blocked (data audit)',expanded=True):
+   for issue in validation['issues']:st.write('• '+issue)
+ else:
+  st.info('Import completed historical games in Data & Accuracy to run the data audit. The import alone does not validate the NPI formula.')
 npi_order=sorted(npi,key=lambda t:(-npi[t],t)); rank=npi_order.index('UCCS')+1
 with st.spinner('Calculating possible tournament fields…'):
  total,counts,fields,champ_stats,sample=simulate(tuple(sorted(cleaned.items())),tuple(sorted(npi.items())))
@@ -118,13 +124,14 @@ c3.metric('Scenarios with UCCS',f'{prob:.1%}',help='Fraction of enumerated outco
 c4.metric('Unresolved games',pending)
 st.progress(prob,text=f'UCCS qualifies in {counts["in"]:,} of {total:,} equally weighted modeled outcomes')
 if st.session_state.mode=='Experimental dynamic NPI' and st.session_state.history:
- st.info(f'EXPERIMENTAL DYNAMIC RATINGS ACTIVE · {len(st.session_state.history):,} historical games · {len(scenario)} entered hypothetical games · {len(st.session_state.import_audit.get("failed_dates",[]))} failed import dates. Changes are estimates, not NCAA-validated NPI.')
+ st.warning('Experimental calculation blocked pending validation. No scenario-driven NPI is being used in the field.')
 else:
- st.error('FIXED BASELINE DISPLAYED — the game editor cannot change NPI until a complete historical dataset is imported and dynamic mode is active.')
+ st.info('SNAPSHOT-BASED NPI DISPLAYED — tournament picks determine conference champions, but do not change NPI. The field is illustrative, not a validated dynamic projection.')
 
 tab1,tab2,tab3,tab4,tab5=st.tabs(['🏆 Projected Field','🎮 Games & Brackets','📊 Rankings & Contenders','🧭 Rooting Guide','⚙️ Data & Accuracy'])
 with tab1:
- st.subheader('Projected 10-team NCAA field')
+ st.subheader('Illustrative 10-team field — fixed NPI snapshot')
+ st.warning('These selections DO NOT reflect NPI changes caused by your selected tournament results. Dynamic NPI is blocked until independently validated.')
  if pending:st.info(f'{pending} games are undecided. The field below is ONE illustrative completion (first branch), not a definitive selection. See the most frequent fields below.')
  else:st.success('All modeled tournament games have winners. This is the single field under the current NPI values.')
  champs,aq,at,first_out=sample
@@ -177,7 +184,7 @@ with tab3:
  st.caption('All 51 regional teams remain eligible for at-large selection in the model; the table focuses on top 20 and bracket contenders.')
 with tab4:
  st.subheader('Conference champion rooting guide')
- st.caption('Fixed-NPI scenario shares conditional on each conference champion; not statistical game-winning probabilities.')
+ st.caption('Fixed-NPI scenario shares conditional on each conference champion; not statistical game-winning probabilities. No dynamic NPI changes are included.')
  for conf in CONF:
   grouped=collections.defaultdict(lambda:[0,0])
   for (champ,yes),ct in champ_stats[conf].items():grouped[champ][0]+=ct;grouped[champ][1]+=ct if yes else 0
@@ -211,13 +218,19 @@ with tab5:
    thin=[t for t in NPI_BASE if coverage.get(t,0)<10]
    if thin:st.warning(f'{len(thin)} regional teams have fewer than 10 imported games. Results may be distorted.')
   st.download_button('Download imported historical games',pd.DataFrame(hist).to_csv(index=False),file_name='ncaa_2026_imported_games.csv',mime='text/csv')
- st.markdown('#### NPI movement from selected games')
- if st.session_state.mode=='Experimental dynamic NPI' and st.session_state.history:
+ st.markdown('#### Historical-data validation report')
+ if st.session_state.history:
+  st.write('**Dynamic calculation: BLOCKED**')
+  for issue in validation['issues']:st.error(issue)
+  if validation['differences']:
+   st.dataframe(pd.DataFrame([{'Team':t,'Published baseline':st.session_state.npi[t],'Experimental reconstruction':round(st.session_state.npi[t]+d,3),'Difference':d,'Imported games':validation['counts'].get(t,0)} for t,d in sorted(validation['differences'].items(),key=lambda x:-abs(x[1]))]),hide_index=True,use_container_width=True)
+ st.markdown('#### NPI movement from selected games — disabled until validated')
+ if False:  # Disabled: unvalidated estimates must not be displayed as ratings.
   tracked=['Fort Lewis','CSU Pueblo','Regis (CO)','UCCS']
   st.markdown('**Scenario impact — key RMAC teams**')
   st.dataframe(pd.DataFrame([{'Team':t,'Baseline':round(st.session_state.npi[t],3),'Scenario estimate':round(npi[t],3),'Change':round(npi[t]-st.session_state.npi[t],4)} for t in tracked if t in npi]),hide_index=True,use_container_width=True)
   st.caption('These are simplified opponent-network estimates, not official NCAA NPI. A zero change may indicate missing or unmatched historical data.')
- if st.session_state.mode=='Experimental dynamic NPI' and st.session_state.history:
+ if False:  # Disabled: unvalidated estimates must not be displayed as ratings.
   movers=sorted([{'Team':t,'Baseline NPI':round(st.session_state.npi[t],3),'Scenario estimate':round(npi[t],3),'Change':round(npi[t]-st.session_state.npi[t],3),'Imported games':coverage.get(t,0)} for t in npi],key=lambda x:abs(x['Change']),reverse=True)
   st.dataframe(pd.DataFrame(movers[:30]),hide_index=True,use_container_width=True)
   st.caption('Changes are differences between two simplified network-model runs, anchored to the entered baseline. The official NCAA formula and coverage have not been validated.')
