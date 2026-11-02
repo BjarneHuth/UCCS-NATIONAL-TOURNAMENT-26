@@ -1,28 +1,11 @@
-# UCCS Tournament Control Center — Streamlit
+# UCCS Tournament Control Center — Experimental Dynamic NPI
 
-A standalone, browser-based version of the Super Region 4 conference tournament scenario model. No Colab or visible code required for viewers.
+Deploy to Streamlit Community Cloud with `app.py` as the entry point.
 
-## Run on your computer
+Upload all four files at repository root: `app.py`, `dynamic_engine.py`, `data.json`, `requirements.txt`.
 
-1. Unzip the project.
-2. Open Terminal in the `uccs_streamlit` folder.
-3. Install dependencies: `python3 -m pip install -r requirements.txt`
-4. Launch: `python3 -m streamlit run app.py`
-5. Open the local URL printed by Streamlit (normally http://localhost:8501).
+Under **Data & Accuracy**, click **Fetch completed 2026 NCAA Division II soccer games**. This calls an unofficial NCAA scoreboard API and may take minutes. Inspect failed dates, unmatched teams and coverage warnings. Then select **Experimental dynamic NPI**. Select tournament game winners; each selection reruns the scenario estimate and changes the rankings and projected field.
 
-## Share as a website
+**Scientific limitations:** This is a simplified opponent-network calculation, not a reproduction of the official NCAA NPI. It uses baseline-anchored deltas between an estimated network before and after selected games. Team names, DII-only filtering, neutral-site flags, national game completeness, duplicate historical/postseason entries, official formula, and calibration against official NCAA ratings require independent validation. Imported data are kept in the current Streamlit session and may be lost when the server restarts; download a CSV for auditing. Do not report the scenario estimates as official NCAA NPI or qualification probabilities.
 
-Upload `app.py`, `data.json`, and `requirements.txt` to a GitHub repository. Then go to https://share.streamlit.io/ , sign in, choose **Create app**, select your repository and `app.py`, and deploy. The resulting link is a normal website. The app is public if deployed publicly; avoid uploading private team data.
-
-## What works
-
-- Five conference bracket editors; selecting a winner advances that team and clears invalid downstream selections.
-- 10-team projected field: 5 conference champions plus 5 at-large teams selected using current ratings.
-- Top 20 regional teams plus remaining bracket contenders, rooting guide, scenario enumeration.
-- NPI manual editing, downloadable/restorable scenario JSON.
-
-## Critical limitation
-
-The model is **fixed NPI** until current ratings are manually entered. It does not include a complete nationwide game database, validated NCAA NPI formula, automatic score import, or official selection odds. Scenario fractions assume all unresolved outcomes equally likely. The starting team ratings and brackets are the earlier Nov 1, 2026 project snapshot; verify schedule and eligibility before relying on it.
-
-The website does not persist picks across users or sessions. Download the scenario JSON and upload it later to restore picks.
+The five AQ + five at-large field is a conditional projection, subject to official NCAA rules and eligibility.

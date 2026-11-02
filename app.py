@@ -1,4 +1,6 @@
 import json, itertools, collections, io, csv
+from datetime import date
+from dynamic_engine import fetch_season, anchored_scenario
 from pathlib import Path
 import pandas as pd
 import streamlit as st
@@ -17,6 +19,8 @@ GAME_BY_ID={g['id']:g for g in GAMES}; DEFAULT={g['id']:g['winner'] for g in GAM
 if 'winners' not in st.session_state:st.session_state.winners=DEFAULT.copy()
 if 'npi' not in st.session_state:st.session_state.npi=NPI_BASE.copy()
 if 'mode' not in st.session_state:st.session_state.mode='Published snapshot (fixed NPI)'
+if 'history' not in st.session_state:st.session_state.history=[]
+if 'import_audit' not in st.session_state:st.session_state.import_audit={}
 
 # Resolve dependencies in topological game order, clearing invalid downstream selections.
 def resolved_games(winners):
@@ -79,13 +83,29 @@ if upload and st.sidebar.button('Load saved scenario'):
 if st.sidebar.button('Reset to baseline',use_container_width=True):
  st.session_state.winners=DEFAULT.copy();st.session_state.npi=NPI_BASE.copy();st.rerun()
 
+# Build actual entered hypothetical games in topological order. A selected match is one game, not every possible branch.
+def selected_games(rows):
+ return [{'a':a,'b':b,'winner':w,'venue':'N','date':'2026-11-02','id':g['id']} for g,a,b,w in rows if w and a and b and DEFAULT.get(g['id']) is None]
+
+@st.cache_data(show_spinner=False,max_entries=8)
+def scenario_ratings(history_json,scenario_json,baseline_json):
+ return anchored_scenario(json.loads(history_json),json.loads(scenario_json),json.loads(baseline_json))
+
 st.title('NCAA Tournament Control Center')
 st.caption('UCCS Men’s Soccer  •  Five conference brackets  •  10-team projected field  •  Scenario explorer')
+st.warning('NPI mode: '+st.session_state.mode+'. Dynamic ratings are experimental and NOT validated NCAA ratings.' if st.session_state.mode=='Experimental dynamic NPI' else 'Fixed published-snapshot NPI: game picks do not change ratings. Enable experimental dynamic mode under Data & Accuracy.')
 
 cleaned,rows=resolved_games(st.session_state.winners)
 st.session_state.winners=cleaned
 pending=sum(w is None for _,_,_,w in rows)
-npi=st.session_state.npi
+npi=st.session_state.npi.copy()
+scenario=selected_games(rows)
+coverage={}
+if st.session_state.mode=='Experimental dynamic NPI' and st.session_state.history:
+ with st.spinner('Recalculating opponent network for the entered results…'):
+  npi,coverage=scenario_ratings(json.dumps(st.session_state.history,sort_keys=True),json.dumps(scenario,sort_keys=True),json.dumps(st.session_state.npi,sort_keys=True))
+if st.session_state.mode=='Experimental dynamic NPI' and not st.session_state.history:
+ st.warning('Dynamic NPI needs historical results. Open Data & Accuracy and click Fetch 2026 completed games. Fixed ratings are displayed until then.')
 npi_order=sorted(npi,key=lambda t:(-npi[t],t)); rank=npi_order.index('UCCS')+1
 with st.spinner('Calculating possible tournament fields…'):
  total,counts,fields,champ_stats,sample=simulate(tuple(sorted(cleaned.items())),tuple(sorted(npi.items())))
@@ -160,7 +180,35 @@ with tab4:
   st.markdown(f'**{conf}**');st.dataframe(df,hide_index=True,use_container_width=True)
 with tab5:
  st.subheader('Ratings and data integrity')
- st.warning('The nationwide historical dataset is not included. Entering a tournament winner does NOT yet recalculate official NPI or indirect opponent effects. The standings here use fixed or manually updated ratings.')
+ st.warning('Dynamic ratings are EXPERIMENTAL, not official NCAA NPI. The importer uses an unofficial NCAA scoreboard service. Venue classification, Division II eligibility, name matching, game coverage and formula have NOT been fully verified.')
+ st.radio('NPI calculation mode',['Published snapshot (fixed NPI)','Experimental dynamic NPI'],key='mode',help='Dynamic mode estimates network effects and anchors the change to your baseline NPI. It is not official.')
+ st.markdown('#### Import completed 2026 games automatically')
+ if st.button('Fetch completed 2026 NCAA Division II soccer games',type='primary'):
+  with st.spinner('Downloading daily scoreboard results; this may take several minutes…'):
+   try:
+    history,audit=fetch_season(end=min(date.today(),date(2026,12,31)))
+    if not history:st.error('No games imported. The source may be unavailable. No ratings were changed.')
+    else:
+     st.session_state.history=history;st.session_state.import_audit=audit
+     st.success(f'Imported {len(history):,} distinct games from {audit["days"]} dates. {len(audit["failed_dates"])} dates failed.');st.rerun()
+   except Exception as exc:st.error(f'Import failed: {exc}')
+ if st.session_state.history:
+  hist=st.session_state.history;aud=st.session_state.import_audit
+  participants=set(t for r in hist for t in (r['a'],r['b']))
+  matches=set(NPI_BASE)&participants
+  st.write(f'Imported games: **{len(hist):,}** · Regional team-name matches: **{len(matches)}/51** · Failed dates: **{len(aud.get("failed_dates",[]))}**')
+  if aud.get('failed_dates'):st.error('Some dates failed to load. Results are incomplete and ratings should not be trusted.');st.write(aud['failed_dates'][:20])
+  missing=set(NPI_BASE)-matches
+  if missing:st.warning('Unmatched regional teams: '+', '.join(sorted(missing)))
+  if coverage:
+   thin=[t for t in NPI_BASE if coverage.get(t,0)<10]
+   if thin:st.warning(f'{len(thin)} regional teams have fewer than 10 imported games. Results may be distorted.')
+  st.download_button('Download imported historical games',pd.DataFrame(hist).to_csv(index=False),file_name='ncaa_2026_imported_games.csv',mime='text/csv')
+ st.markdown('#### NPI movement from selected games')
+ if st.session_state.mode=='Experimental dynamic NPI' and st.session_state.history:
+  movers=sorted([{'Team':t,'Baseline NPI':round(st.session_state.npi[t],3),'Scenario estimate':round(npi[t],3),'Change':round(npi[t]-st.session_state.npi[t],3),'Imported games':coverage.get(t,0)} for t in npi],key=lambda x:abs(x['Change']),reverse=True)
+  st.dataframe(pd.DataFrame(movers[:30]),hide_index=True,use_container_width=True)
+  st.caption('Changes are differences between two simplified network-model runs, anchored to the entered baseline. The official NCAA formula and coverage have not been validated.')
  st.markdown('#### Edit current NPI values')
  edits=pd.DataFrame([{'Team':t,'Conference':CONF_OF[t],'NPI':npi[t]} for t in npi_order])
  edited=st.data_editor(edits,hide_index=True,use_container_width=True,disabled=['Team','Conference'],column_config={'NPI':st.column_config.NumberColumn('NPI',min_value=0,max_value=100,format='%.3f')},key='npi_editor')
@@ -168,5 +216,5 @@ with tab5:
   st.session_state.npi={r['Team']:float(r['NPI']) for _,r in edited.iterrows()};st.rerun()
  st.markdown('#### Data source / validation status')
  st.write('Baseline: 51 regional teams and 19 modeled conference tournament games from the earlier Colab project (Nov 1, 2026 snapshot).')
- st.write('Nationwide game-by-game import: **not connected**. NCAA formula reproduction: **not validated**. This site must not be presented as official NCAA rankings.')
+ st.write('Nationwide scoreboard importer: **available, unofficial and subject to coverage audit**. NCAA formula reproduction: **not validated**. This site must not be presented as official NCAA rankings.')
  st.download_button('Download regional NPI table',edits.to_csv(index=False),file_name='regional_npi.csv',mime='text/csv')
