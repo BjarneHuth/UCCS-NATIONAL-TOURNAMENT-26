@@ -1,0 +1,507 @@
+{
+  "TEAM_DATA": [
+    [
+      "Cal State Los Angeles",
+      "CCAA",
+      "15-0-2",
+      63.318,
+      1
+    ],
+    [
+      "CSU Pueblo",
+      "RMAC",
+      "13-0-3",
+      62.358,
+      2
+    ],
+    [
+      "Midwestern State",
+      "LSC",
+      "14-0-4",
+      61.417,
+      3
+    ],
+    [
+      "Regis (CO)",
+      "RMAC",
+      "11-3-3",
+      59.92,
+      4
+    ],
+    [
+      "Seattle Pacific",
+      "GNAC",
+      "15-3-1",
+      59.548,
+      5
+    ],
+    [
+      "Cal State San Bernardino",
+      "CCAA",
+      "13-3-3",
+      57.478,
+      6
+    ],
+    [
+      "UCCS",
+      "RMAC",
+      "10-3-6",
+      57.037,
+      7
+    ],
+    [
+      "Western Oregon",
+      "GNAC",
+      "11-3-5",
+      56.737,
+      8
+    ],
+    [
+      "Fort Lewis",
+      "RMAC",
+      "10-5-2",
+      55.474,
+      9
+    ],
+    [
+      "Cal State Monterey Bay",
+      "CCAA",
+      "11-4-3",
+      55.421,
+      10
+    ],
+    [
+      "UT Dallas",
+      "LSC",
+      "11-2-6",
+      55.066,
+      11
+    ],
+    [
+      "Oklahoma Christian",
+      "LSC",
+      "9-3-4",
+      55.027,
+      12
+    ],
+    [
+      "Cal Poly Pomona",
+      "CCAA",
+      "8-5-5",
+      53.964,
+      13
+    ],
+    [
+      "St. Mary's (TX)",
+      "LSC",
+      "10-5-2",
+      53.942,
+      14
+    ],
+    [
+      "Northwest Nazarene",
+      "GNAC",
+      "8-5-6",
+      53.783,
+      15
+    ],
+    [
+      "Cal State San Marcos",
+      "CCAA",
+      "11-6-1",
+      53.78,
+      16
+    ],
+    [
+      "Simon Fraser",
+      "GNAC",
+      "7-5-5",
+      53.633,
+      17
+    ],
+    [
+      "Metro State",
+      "RMAC",
+      "7-6-4",
+      52.965,
+      18
+    ],
+    [
+      "Westminster (UT)",
+      "RMAC",
+      "8-7-4",
+      52.942,
+      19
+    ],
+    [
+      "Western Washington",
+      "GNAC",
+      "9-8-2",
+      52.539,
+      20
+    ],
+    [
+      "Menlo",
+      "CCAA",
+      "9-6-3",
+      52.206,
+      21
+    ],
+    [
+      "Colorado Mesa",
+      "RMAC",
+      "4-4-9",
+      51.871,
+      22
+    ],
+    [
+      "South Dakota Mines",
+      "RMAC",
+      "6-4-3",
+      51.601,
+      23
+    ],
+    [
+      "Point Loma Nazarene",
+      "PWC",
+      "8-6-3",
+      51.53,
+      24
+    ],
+    [
+      "Westmont",
+      "PWC",
+      "7-6-4",
+      50.981,
+      25
+    ],
+    [
+      "UC Merced",
+      "CCAA",
+      "7-7-3",
+      50.865,
+      26
+    ],
+    [
+      "Dallas Baptist",
+      "LSC",
+      "7-5-6",
+      50.806,
+      27
+    ],
+    [
+      "Hawaii Pacific",
+      "PWC",
+      "8-5-3",
+      50.574,
+      28
+    ],
+    [
+      "Concordia (CA)",
+      "PWC",
+      "9-7-1",
+      50.548,
+      29
+    ],
+    [
+      "Stanislaus State",
+      "CCAA",
+      "5-6-7",
+      50.349,
+      30
+    ],
+    [
+      "Cal State Dominguez Hills",
+      "CCAA",
+      "6-7-5",
+      50.121,
+      31
+    ],
+    [
+      "Hawaii\u2013Hilo",
+      "PWC",
+      "6-6-3",
+      49.735,
+      32
+    ],
+    [
+      "Vanguard",
+      "PWC",
+      "7-7-2",
+      49.499,
+      33
+    ],
+    [
+      "St. Edward's",
+      "LSC",
+      "5-8-4",
+      49.038,
+      34
+    ],
+    [
+      "Dominican (CA)",
+      "PWC",
+      "6-6-4",
+      48.347,
+      35
+    ],
+    [
+      "Lubbock Christian",
+      "LSC",
+      "7-9-1",
+      48.216,
+      36
+    ],
+    [
+      "UT Tyler",
+      "LSC",
+      "4-7-5",
+      48.088,
+      37
+    ],
+    [
+      "Texas A&M International",
+      "LSC",
+      "5-8-3",
+      47.811,
+      38
+    ],
+    [
+      "Colorado Christian",
+      "RMAC",
+      "4-9-5",
+      47.736,
+      39
+    ],
+    [
+      "West Texas A&M",
+      "LSC",
+      "5-9-4",
+      47.276,
+      40
+    ],
+    [
+      "Chico State",
+      "CCAA",
+      "4-10-4",
+      47.004,
+      41
+    ],
+    [
+      "Fresno Pacific",
+      "CCAA",
+      "5-10-1",
+      46.772,
+      42
+    ],
+    [
+      "Biola",
+      "PWC",
+      "4-9-3",
+      45.802,
+      43
+    ],
+    [
+      "St. Martin's",
+      "GNAC",
+      "4-12-2",
+      45.475,
+      44
+    ],
+    [
+      "Cal State East Bay",
+      "CCAA",
+      "2-12-4",
+      44.694,
+      45
+    ],
+    [
+      "Cal Poly Humboldt",
+      "CCAA",
+      "2-13-3",
+      42.466,
+      46
+    ],
+    [
+      "Adams State",
+      "RMAC",
+      "1-12-1",
+      40.027,
+      47
+    ],
+    [
+      "Jessup",
+      "PWC",
+      "1-13-1",
+      39.107,
+      48
+    ],
+    [
+      "Colorado Mines",
+      "RMAC",
+      "0-15-3",
+      38.865,
+      49
+    ],
+    [
+      "Chaminade",
+      "PWC",
+      "0-13-2",
+      38.454,
+      50
+    ],
+    [
+      "Sul Ross State",
+      "LSC",
+      "0-16-0",
+      35.457,
+      51
+    ]
+  ],
+  "GAMES": [
+    {
+      "id": "CCAA-SF1",
+      "conf": "CCAA",
+      "round": "Semifinal",
+      "a": "Cal State Los Angeles",
+      "b": "Menlo",
+      "winner": null
+    },
+    {
+      "id": "CCAA-SF2",
+      "conf": "CCAA",
+      "round": "Semifinal",
+      "a": "Cal Poly Pomona",
+      "b": "Cal State San Bernardino",
+      "winner": null
+    },
+    {
+      "id": "CCAA-F",
+      "conf": "CCAA",
+      "round": "Final",
+      "a": "CCAA-SF1",
+      "b": "CCAA-SF2",
+      "winner": null
+    },
+    {
+      "id": "GNAC-SF",
+      "conf": "GNAC",
+      "round": "Semifinal",
+      "a": "Simon Fraser",
+      "b": "Seattle Pacific",
+      "winner": null
+    },
+    {
+      "id": "GNAC-F",
+      "conf": "GNAC",
+      "round": "Final",
+      "a": "GNAC-SF",
+      "b": "Western Oregon",
+      "winner": null
+    },
+    {
+      "id": "LSC-QF1",
+      "conf": "LSC",
+      "round": "Quarterfinal",
+      "a": "St. Mary's (TX)",
+      "b": "Dallas Baptist",
+      "winner": "St. Mary's (TX)"
+    },
+    {
+      "id": "LSC-QF2",
+      "conf": "LSC",
+      "round": "Quarterfinal",
+      "a": "UT Dallas",
+      "b": "St. Edward's",
+      "winner": "UT Dallas"
+    },
+    {
+      "id": "LSC-SF1",
+      "conf": "LSC",
+      "round": "Semifinal",
+      "a": "Midwestern State",
+      "b": "LSC-QF2",
+      "winner": null
+    },
+    {
+      "id": "LSC-SF2",
+      "conf": "LSC",
+      "round": "Semifinal",
+      "a": "Oklahoma Christian",
+      "b": "LSC-QF1",
+      "winner": null
+    },
+    {
+      "id": "LSC-F",
+      "conf": "LSC",
+      "round": "Final",
+      "a": "LSC-SF1",
+      "b": "LSC-SF2",
+      "winner": null
+    },
+    {
+      "id": "PWC-SF1",
+      "conf": "PWC",
+      "round": "Semifinal",
+      "a": "Hawaii Pacific",
+      "b": "Dominican (CA)",
+      "winner": null
+    },
+    {
+      "id": "PWC-SF2",
+      "conf": "PWC",
+      "round": "Semifinal",
+      "a": "Vanguard",
+      "b": "Westmont",
+      "winner": null
+    },
+    {
+      "id": "PWC-F",
+      "conf": "PWC",
+      "round": "Final",
+      "a": "PWC-SF1",
+      "b": "PWC-SF2",
+      "winner": null
+    },
+    {
+      "id": "RMAC-QF1",
+      "conf": "RMAC",
+      "round": "Quarterfinal",
+      "a": "UCCS",
+      "b": "Westminster (UT)",
+      "winner": "Westminster (UT)"
+    },
+    {
+      "id": "RMAC-QF2",
+      "conf": "RMAC",
+      "round": "Quarterfinal",
+      "a": "Fort Lewis",
+      "b": "South Dakota Mines",
+      "winner": null
+    },
+    {
+      "id": "RMAC-SF1",
+      "conf": "RMAC",
+      "round": "Semifinal",
+      "a": "Regis (CO)",
+      "b": "RMAC-QF1",
+      "winner": null
+    },
+    {
+      "id": "RMAC-SF2",
+      "conf": "RMAC",
+      "round": "Semifinal",
+      "a": "CSU Pueblo",
+      "b": "RMAC-QF2",
+      "winner": null
+    },
+    {
+      "id": "RMAC-F",
+      "conf": "RMAC",
+      "round": "Final",
+      "a": "RMAC-SF1",
+      "b": "RMAC-SF2",
+      "winner": null
+    }
+  ]
+}
