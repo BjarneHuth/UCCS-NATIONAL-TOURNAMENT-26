@@ -24,7 +24,7 @@ def parse_day(payload,day):
   away,sa=team('away');home,sh=team('home')
   if not away or not home or sa is None or sh is None or away==home:skipped+=1;continue
   neutral=bool(g.get('neutralSite') or g.get('isNeutral') or g.get('neutral'))
-  out.append({'date':day.isoformat(),'id':str(g.get('gameID') or g.get('id') or ''),'a':away,'b':home,'winner':away if sa>sh else home if sh>sa else 'TIE','venue':'N' if neutral else 'B','score_a':sa,'score_b':sh,'neutral_confirmed':neutral})
+  out.append({'date':day.isoformat(),'id':str(g.get('gameID') or g.get('id') or ''),'a':away,'b':home,'winner':away if sa>sh else home if sh>sa else 'TIE','venue':'N' if neutral else 'H','score_a':sa,'score_b':sh,'neutral_confirmed':neutral})
  return out,skipped
 
 def fetch_season(start=date(2026,8,1),end=None):
@@ -51,8 +51,8 @@ def estimate(rows,baseline,iterations=100):
  for r in rows:
   a,b,w,v=r['a'],r['b'],r['winner'],r['venue']
   if not a or not b or a==b:continue
-  played[a].append((b,1 if w==a else .5 if w=='TIE' else 0,'H' if v=='A' else 'A' if v=='B' else 'N'))
-  played[b].append((a,1 if w==b else .5 if w=='TIE' else 0,'H' if v=='B' else 'A' if v=='A' else 'N'))
+  played[a].append((b,1 if w==a else .5 if w=='TIE' else 0,'N' if v=='N' else 'A'))
+  played[b].append((a,1 if w==b else .5 if w=='TIE' else 0,'N' if v=='N' else 'H'))
  vals={t:float(v) for t,v in baseline.items()}
  for t in played:vals.setdefault(t,50.)
  for _ in range(iterations):
