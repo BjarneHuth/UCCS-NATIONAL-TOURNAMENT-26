@@ -459,7 +459,7 @@
       "round": "Semifinal",
       "a": "Vanguard",
       "b": "Westmont",
-      "winner": "Vanguard",
+      "winner": "Westmont",
       "locked": true
     },
     {
@@ -519,5 +519,6 @@
     }
   ],
   "snapshot_date": "November 5, 2026",
-  "source": "User-provided Inkblot screenshot (top 23); remaining team ratings retained from prior snapshot"
+  "source": "User-provided Inkblot screenshot (top 23); remaining team ratings retained from prior snapshot",
+  "data_version": "2026-11-06-westmont-regional-bracket-v2"
 }

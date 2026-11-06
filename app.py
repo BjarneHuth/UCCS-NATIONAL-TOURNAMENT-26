@@ -69,12 +69,12 @@ if 'venue_overrides' not in st.session_state:st.session_state.venue_overrides={}
 if 'snapshot_date' not in st.session_state:st.session_state.snapshot_date=DATA.get('snapshot_date','November 5, 2026')
 if 'records' not in st.session_state:st.session_state.records={r[0]:r[2] for r in TEAMS}
 # Previously saved sessions can contain outdated baselines. Refresh on deployment.
-if st.session_state.get('data_version') != DATA.get('snapshot_date'):
+if st.session_state.get('data_version') != DATA.get('data_version', DATA.get('snapshot_date')):
  st.session_state.npi=NPI_BASE.copy()
  st.session_state.records={r[0]:r[2] for r in TEAMS}
  st.session_state.snapshot_date=DATA.get('snapshot_date','November 5, 2026')
  st.session_state.winners=DEFAULT.copy()
- st.session_state.data_version=DATA.get('snapshot_date')
+ st.session_state.data_version=DATA.get('data_version', DATA.get('snapshot_date'))
 
 # Resolve dependencies in topological game order, clearing invalid downstream selections.
 def resolved_games(winners):
@@ -184,7 +184,7 @@ c1.metric('UCCS NPI',f"{npi['UCCS']:.3f}",f"{npi['UCCS']-NPI_BASE['UCCS']:+.3f} 
 c2.metric('Regional rank',f'#{rank}')
 c3.metric('Unresolved games',pending)
 
-tab2,tab1,tab3,tab5=st.tabs(['⚽ Pick Winners','🏆 Projected Field','📊 Rankings','⚙️ Settings & Data'])
+tab2,tab1,tab_bracket,tab3,tab5=st.tabs(['⚽ Pick Winners','🏆 Projected Field','🏟️ National Bracket','📊 Rankings','⚙️ Settings & Data'])
 with tab1:
  st.subheader('Illustrative 10-team field — '+('dynamic estimated NPI' if st.session_state.mode=='Experimental dynamic NPI' else 'fixed NPI snapshot'))
  if pending:st.info(f'{pending} games are undecided. The field below is ONE illustrative completion (first branch), not a definitive selection. The preview selects higher-rated teams in unresolved games.')
@@ -207,6 +207,71 @@ with tab1:
   st.metric('UCCS appears in modeled outcomes',f'{counts["in"]/total:.1%}')
   top=[{'Scenarios':n,'Share':f'{n/total:.1%}','UCCS in field':'Yes' if 'UCCS' in f else 'No','Teams':', '.join(f)} for f,n in fields.most_common(12)]
   st.dataframe(pd.DataFrame(top),hide_index=True,use_container_width=True)
+
+with tab_bracket:
+ st.subheader('Super Region 4 · NCAA Tournament Bracket')
+ st.caption('The 10 projected qualifiers are seeded 1–10 by their current estimated NPI. Seeds 1–6 receive a first-round bye. Bracket selections are separate from conference tournament results.')
+ projected_teams=sorted(set(sample[1]+sample[2]),key=lambda t:(-npi[t],t))
+ seeds={i+1:t for i,t in enumerate(projected_teams)}
+ field_signature=tuple(projected_teams)
+ if st.session_state.get('national_bracket_field')!=field_signature:
+  st.session_state.national_bracket_field=field_signature
+  st.session_state.national_bracket_picks={}
+ picks=st.session_state.national_bracket_picks
+ def bracket_game(game_id,seed_a,seed_b,host,round_name):
+  a=seeds[seed_a] if isinstance(seed_a,int) else seed_a
+  b=seeds[seed_b] if isinstance(seed_b,int) else seed_b
+  if not a or not b:
+   st.caption(f'{round_name} · Awaiting first-round winner')
+   return None
+  def seed_label(t):
+   return f'#{projected_teams.index(t)+1} {t}'
+  host_text=(f' · Hosted by #{host} {seeds[host]}' if game_id.startswith(('R1_','R2_')) else ' · Host TBD')
+  st.markdown(f'**{round_name}{host_text}**')
+  options=['Not selected',a,b]
+  old=picks.get(game_id)
+  selected=st.selectbox(f'{seed_label(a)}  vs  {seed_label(b)}',options,index=options.index(old) if old in options else 0,key=f'national_{game_id}_{abs(hash((a,b)))%100000000}')
+  winner=None if selected=='Not selected' else selected
+  picks[game_id]=winner
+  return winner
+ col_left,col_right=st.columns(2)
+ with col_left:
+  st.markdown('#### Path to seed #1')
+  first_89=bracket_game('R1_8_9',8,9,1,'First round · 8 vs 9')
+  second_1=bracket_game('R2_1',1,first_89,1,'Second round · 1 vs 8/9')
+  st.divider()
+  st.markdown('#### Path to seed #4')
+  second_4=bracket_game('R2_4',4,5,4,'Second round · 4 vs 5')
+ with col_right:
+  st.markdown('#### Path to seed #2')
+  first_7_10=bracket_game('R1_7_10',7,10,2,'First round · 7 vs 10')
+  second_2=bracket_game('R2_2',2,first_7_10,2,'Second round · 2 vs 7/10')
+  st.divider()
+  st.markdown('#### Path to seed #3')
+  second_3=bracket_game('R2_3',3,6,3,'Second round · 3 vs 6')
+ st.markdown('#### Second-round winners')
+ finalists=[(1,second_1),(4,second_4),(2,second_2),(3,second_3)]
+ st.dataframe(pd.DataFrame([{'Section':f'Host seed #{host}', 'Advancing team':winner or 'To be decided'} for host,winner in finalists]),hide_index=True,width='stretch')
+ st.divider()
+ st.markdown('#### Regional semifinals')
+ st.caption('Winner of the #1 section plays the winner of the #4 section; winner of the #2 section plays the winner of the #3 section.')
+ semi_left,semi_right=st.columns(2)
+ with semi_left:
+  regional_semi_1=bracket_game('R3_1_4',second_1,second_4,1,'Regional semifinal · #1/#8/#9 vs #4/#5')
+ with semi_right:
+  regional_semi_2=bracket_game('R3_2_3',second_2,second_3,2,'Regional semifinal · #2/#7/#10 vs #3/#6')
+ st.divider()
+ st.markdown('#### Super Region 4 Final')
+ if regional_semi_1 and regional_semi_2:
+  final_options=['Not selected',regional_semi_1,regional_semi_2]
+  final_old=picks.get('R4_FINAL')
+  final_pick=st.selectbox('Regional champion',final_options,index=final_options.index(final_old) if final_old in final_options else 0,key='national_R4_FINAL')
+  picks['R4_FINAL']=None if final_pick=='Not selected' else final_pick
+  if picks['R4_FINAL']:
+   st.success(f'Super Region 4 champion: {picks["R4_FINAL"]} · Advances to national quarterfinals')
+ else:
+  st.caption('Select the preceding winners to unlock the Super Region 4 Final.')
+ st.caption('Hosting for the regional semifinals and final is provisional and subject to NCAA site assignments.')
 
 with tab2:
  st.subheader('Select game winners — advancement updates immediately')
