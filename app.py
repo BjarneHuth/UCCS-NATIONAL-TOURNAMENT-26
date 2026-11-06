@@ -1,4 +1,4 @@
-import json, itertools, collections, io, csv
+import json, itertools, collections, io, csv, html
 from datetime import date, timedelta
 from dynamic_engine import fetch_season, anchored_scenario
 from validation import audit_history
@@ -7,6 +7,7 @@ from inkblot import fetch_snapshot
 from pathlib import Path
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 st.set_page_config(page_title='UCCS | Tournament Control Center',page_icon='⚽',layout='wide',initial_sidebar_state='expanded')
 st.markdown('''<style>
@@ -209,69 +210,72 @@ with tab1:
   st.dataframe(pd.DataFrame(top),hide_index=True,use_container_width=True)
 
 with tab_bracket:
- st.subheader('Super Region 4 · NCAA Tournament Bracket')
- st.caption('The 10 projected qualifiers are seeded 1–10 by their current estimated NPI. Seeds 1–6 receive a first-round bye. Bracket selections are separate from conference tournament results.')
+ st.subheader('Super Region 4 · National Tournament Bracket')
+ st.caption('Projected bracket based on your conference tournament picks and the resulting 10-team field. No separate bracket picks needed.')
  projected_teams=sorted(set(sample[1]+sample[2]),key=lambda t:(-npi[t],t))
- seeds={i+1:t for i,t in enumerate(projected_teams)}
- field_signature=tuple(projected_teams)
- if st.session_state.get('national_bracket_field')!=field_signature:
-  st.session_state.national_bracket_field=field_signature
-  st.session_state.national_bracket_picks={}
- picks=st.session_state.national_bracket_picks
- def bracket_game(game_id,seed_a,seed_b,host,round_name):
-  a=seeds[seed_a] if isinstance(seed_a,int) else seed_a
-  b=seeds[seed_b] if isinstance(seed_b,int) else seed_b
-  if not a or not b:
-   st.caption(f'{round_name} · Awaiting first-round winner')
-   return None
-  def seed_label(t):
-   return f'#{projected_teams.index(t)+1} {t}'
-  host_text=(f' · Hosted by #{host} {seeds[host]}' if game_id.startswith(('R1_','R2_')) else ' · Host TBD')
-  st.markdown(f'**{round_name}{host_text}**')
-  options=['Not selected',a,b]
-  old=picks.get(game_id)
-  selected=st.selectbox(f'{seed_label(a)}  vs  {seed_label(b)}',options,index=options.index(old) if old in options else 0,key=f'national_{game_id}_{abs(hash((a,b)))%100000000}')
-  winner=None if selected=='Not selected' else selected
-  picks[game_id]=winner
-  return winner
- col_left,col_right=st.columns(2)
- with col_left:
-  st.markdown('#### Path to seed #1')
-  first_89=bracket_game('R1_8_9',8,9,1,'First round · 8 vs 9')
-  second_1=bracket_game('R2_1',1,first_89,1,'Second round · 1 vs 8/9')
-  st.divider()
-  st.markdown('#### Path to seed #4')
-  second_4=bracket_game('R2_4',4,5,4,'Second round · 4 vs 5')
- with col_right:
-  st.markdown('#### Path to seed #2')
-  first_7_10=bracket_game('R1_7_10',7,10,2,'First round · 7 vs 10')
-  second_2=bracket_game('R2_2',2,first_7_10,2,'Second round · 2 vs 7/10')
-  st.divider()
-  st.markdown('#### Path to seed #3')
-  second_3=bracket_game('R2_3',3,6,3,'Second round · 3 vs 6')
- st.markdown('#### Second-round winners')
- finalists=[(1,second_1),(4,second_4),(2,second_2),(3,second_3)]
- st.dataframe(pd.DataFrame([{'Section':f'Host seed #{host}', 'Advancing team':winner or 'To be decided'} for host,winner in finalists]),hide_index=True,width='stretch')
- st.divider()
- st.markdown('#### Regional semifinals')
- st.caption('Winner of the #1 section plays the winner of the #4 section; winner of the #2 section plays the winner of the #3 section.')
- semi_left,semi_right=st.columns(2)
- with semi_left:
-  regional_semi_1=bracket_game('R3_1_4',second_1,second_4,1,'Regional semifinal · #1/#8/#9 vs #4/#5')
- with semi_right:
-  regional_semi_2=bracket_game('R3_2_3',second_2,second_3,2,'Regional semifinal · #2/#7/#10 vs #3/#6')
- st.divider()
- st.markdown('#### Super Region 4 Final')
- if regional_semi_1 and regional_semi_2:
-  final_options=['Not selected',regional_semi_1,regional_semi_2]
-  final_old=picks.get('R4_FINAL')
-  final_pick=st.selectbox('Regional champion',final_options,index=final_options.index(final_old) if final_old in final_options else 0,key='national_R4_FINAL')
-  picks['R4_FINAL']=None if final_pick=='Not selected' else final_pick
-  if picks['R4_FINAL']:
-   st.success(f'Super Region 4 champion: {picks["R4_FINAL"]} · Advances to national quarterfinals')
+ if len(projected_teams)!=10:
+  st.error('Cannot draw a 10-team bracket until the projected field contains exactly 10 distinct teams.')
  else:
-  st.caption('Select the preceding winners to unlock the Super Region 4 Final.')
- st.caption('Hosting for the regional semifinals and final is provisional and subject to NCAA site assignments.')
+  seeds={i+1:t for i,t in enumerate(projected_teams)}
+  def line(team, seed=None):
+   if team is None:
+    return '<div class="team pending"><span class="seed">—</span><span class="name">To be determined</span></div>'
+   if isinstance(team,int):
+    seed=team
+    team=seeds[team]
+   prefix=f'#{seed}' if seed is not None else ''
+   return f'<div class="team"><span class="seed">{prefix}</span><span class="name">{html.escape(str(team))}</span></div>'
+  def game(label,team1,team2,host=None):
+   host_text=f' · Hosted by #{host} {html.escape(seeds[host])}' if host else ''
+   return f'<div class="match"><div class="match-header">{html.escape(label)}{host_text}</div>{line(team1)}{line(team2)}</div>'
+  # Future NCAA tournament results are not predicted. Bracket progression remains
+  # labeled by the relevant section until those games are played.
+  def card(x,y,markup):
+   return f'<div class="slot" style="left:{x}px;top:{y}px">{markup}</div>'
+  r1_89=game('FIRST ROUND',8,9,1)
+  r1_710=game('FIRST ROUND',7,10,2)
+  r2_1=game('SECOND ROUND',1,'Winner #8 / #9',1)
+  r2_4=game('SECOND ROUND',4,5,4)
+  r2_2=game('SECOND ROUND',2,'Winner #7 / #10',2)
+  r2_3=game('SECOND ROUND',3,6,3)
+  semi_1=game('REGIONAL SEMIFINAL','Winner #1 section','Winner #4 section')
+  semi_2=game('REGIONAL SEMIFINAL','Winner #2 section','Winner #3 section')
+  final=game('REGIONAL FINAL','Semifinal 1 winner','Semifinal 2 winner')
+  markup=''.join([
+   card(12,70,r1_89),card(12,690,r1_710),
+   card(340,70,r2_1),card(340,290,r2_4),
+   card(340,690,r2_2),card(340,910,r2_3),
+   card(670,180,semi_1),card(670,800,semi_2),
+   card(1000,490,final)
+  ])
+  # Each line joins a completed matchup to the next round, in the style of
+  # a traditional NCAA tournament bracket.
+  connections=[(302,143,328,143),(630,143,650,143),(650,143,650,253),(650,253,658,253),
+               (630,363,650,363),(650,363,650,253),
+               (302,763,328,763),(630,763,650,763),(650,763,650,873),(650,873,658,873),
+               (630,983,650,983),(650,983,650,873),
+               (960,253,980,253),(980,253,980,563),(980,563,988,563),
+               (960,873,980,873),(980,873,980,563)]
+  svg=''.join(f'<path d="M{x1} {y1} L{x2} {y2}"/>' for x1,y1,x2,y2 in connections)
+  bracket_html=f"""<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{{box-sizing:border-box}}body{{margin:0;background:#141518;color:#f9f8f5;font-family:Arial,Helvetica,sans-serif}}
+.legend{{font-size:13px;color:#c9c4b8;padding:12px 14px 0}}.viewport{{width:100%;overflow-x:auto;padding:8px 0 20px}}
+.board{{width:1320px;height:1085px;position:relative;background:#1a1b1e;border:1px solid #55524a;border-radius:12px;margin:0 8px}}
+.slot{{position:absolute;width:290px;z-index:1}}.match{{background:#282a2e;border:1px solid #a38e60;border-radius:8px;overflow:hidden;box-shadow:0 4px 12px #0005}}
+.match-header{{height:31px;display:flex;align-items:center;padding:0 10px;background:#cfb87c;color:#161616;font-size:10px;font-weight:800;letter-spacing:.055em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+.team{{height:56px;display:flex;align-items:center;gap:10px;border-top:1px solid #47484b;padding:0 10px;font-size:14px}}
+.team .seed{{min-width:30px;color:#cfb87c;font-weight:bold}}.team .name{{white-space:normal;line-height:1.25}}.team.pending{{color:#a9a9a9;font-style:italic}}
+svg{{position:absolute;inset:0;pointer-events:none}}path{{fill:none;stroke:#cfb87c;stroke-width:2.5}}
+.round-label{{position:absolute;top:15px;font-size:12px;font-weight:800;letter-spacing:.07em;color:#cfb87c}}
+</style></head><body><div class="legend">Seeds #1–#6 receive byes · Scroll horizontally on smaller screens</div>
+<div class="viewport"><div class="board">
+<div class="round-label" style="left:12px">FIRST ROUND</div><div class="round-label" style="left:340px">SECOND ROUND</div>
+<div class="round-label" style="left:670px">REGIONAL SEMIFINALS</div><div class="round-label" style="left:1000px">REGIONAL FINAL</div>
+<svg width="1320" height="1085">{svg}</svg>{markup}
+</div></div></body></html>"""
+  components.html(bracket_html,height=1160,scrolling=False)
+  st.caption('The bracket shows matchups and advancement paths only. Teams update when your conference tournament selections or NPI rankings change. Future national tournament winners are not assumed.')
 
 with tab2:
  st.subheader('Select game winners — advancement updates immediately')
