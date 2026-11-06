@@ -66,8 +66,15 @@ if 'history' not in st.session_state:st.session_state.history=[]
 if 'import_audit' not in st.session_state:st.session_state.import_audit={}
 if 'import_attempted' not in st.session_state:st.session_state.import_attempted=False
 if 'venue_overrides' not in st.session_state:st.session_state.venue_overrides={}
-if 'snapshot_date' not in st.session_state:st.session_state.snapshot_date='November 2'
+if 'snapshot_date' not in st.session_state:st.session_state.snapshot_date=DATA.get('snapshot_date','November 5, 2026')
 if 'records' not in st.session_state:st.session_state.records={r[0]:r[2] for r in TEAMS}
+# Previously saved sessions can contain outdated baselines. Refresh on deployment.
+if st.session_state.get('data_version') != DATA.get('snapshot_date'):
+ st.session_state.npi=NPI_BASE.copy()
+ st.session_state.records={r[0]:r[2] for r in TEAMS}
+ st.session_state.snapshot_date=DATA.get('snapshot_date','November 5, 2026')
+ st.session_state.winners=DEFAULT.copy()
+ st.session_state.data_version=DATA.get('snapshot_date')
 
 # Resolve dependencies in topological game order, clearing invalid downstream selections.
 def resolved_games(winners):
@@ -81,7 +88,7 @@ def resolved_games(winners):
   rows.append((g,a,b,w))
  return cleaned,rows
 
-st.session_state.winners,_=resolved_games(st.session_state.winners)
+st.session_state.winners,_=resolved_games({**st.session_state.winners,**{g['id']:g['winner'] for g in GAMES if g.get('locked')}})
 
 def field_for(champions,npi):
  aq=[champions[c] for c in CONF]
@@ -123,12 +130,12 @@ st.sidebar.download_button('⬇ Download saved scenario',json.dumps(state,indent
 upload=st.sidebar.file_uploader('Restore saved scenario (.json)',type='json')
 if upload and st.sidebar.button('Load saved scenario'):
  try:
-  obj=json.load(upload);st.session_state.winners={**DEFAULT,**{k:v for k,v in obj.get('winners',{}).items() if k in DEFAULT}}
+  obj=json.load(upload);st.session_state.winners={**DEFAULT,**{k:v for k,v in obj.get('winners',{}).items() if k in DEFAULT and not GAME_BY_ID[k].get('locked')}}
   st.session_state.npi={**NPI_BASE,**{k:float(v) for k,v in obj.get('npi',{}).items() if k in NPI_BASE}}
   st.rerun()
  except Exception as e:st.sidebar.error(f'Could not load: {e}')
 if st.sidebar.button('Reset to baseline',use_container_width=True):
- st.session_state.winners=DEFAULT.copy();st.session_state.npi=NPI_BASE.copy();st.session_state.snapshot_date='November 2';st.rerun()
+ st.session_state.winners=DEFAULT.copy();st.session_state.npi=NPI_BASE.copy();st.session_state.snapshot_date=DATA.get('snapshot_date','November 5, 2026');st.rerun()
 
 # Build actual entered hypothetical games in topological order. A selected match is one game, not every possible branch.
 def selected_games(rows):
@@ -160,20 +167,27 @@ if st.session_state.mode == 'Experimental dynamic NPI':
 else:
  st.info('Published snapshot mode: picks change conference champions but not NPI ratings.')
 npi_order=sorted(npi,key=lambda t:(-npi[t],t)); rank=npi_order.index('UCCS')+1
-with st.spinner('Calculating possible tournament fields…'):
- total,counts,fields,champ_stats,sample=simulate(tuple(sorted(cleaned.items())),tuple(sorted(npi.items())))
-prob=counts['in']/total if total else 0
-c1,c2,c3,c4=st.columns(4)
+# Instant deterministic completion for the visible projected field.
+# Full combinatorial enumeration runs only on explicit request.
+def preview_field(known,ratings):
+ outcomes={}
+ for g in GAMES:
+  a=outcomes.get(g['a'],g['a']); b=outcomes.get(g['b'],g['b'])
+  outcomes[g['id']]=known.get(g['id']) or (a if ratings.get(a,0)>=ratings.get(b,0) else b)
+ champions={c:next(outcomes[g['id']] for g in GAMES if g['conf']==c and g['round']=='Final') for c in CONF}
+ aq,at,first_out=field_for(champions,ratings)
+ return champions,aq,at,first_out
+sample=preview_field(cleaned,npi)
+prob=None
+c1,c2,c3=st.columns(3)
 c1.metric('UCCS NPI',f"{npi['UCCS']:.3f}",f"{npi['UCCS']-NPI_BASE['UCCS']:+.3f} vs baseline")
 c2.metric('Regional rank',f'#{rank}')
-c3.metric('Scenarios with UCCS',f'{prob:.1%}',help='Fraction of enumerated outcomes, NOT a real-world probability')
-c4.metric('Unresolved games',pending)
-st.progress(prob,text=f'UCCS appears in {counts["in"]:,} of {total:,} simulated bracket outcomes')
+c3.metric('Unresolved games',pending)
 
 tab2,tab1,tab3,tab5=st.tabs(['⚽ Pick Winners','🏆 Projected Field','📊 Rankings','⚙️ Settings & Data'])
 with tab1:
  st.subheader('Illustrative 10-team field — '+('dynamic estimated NPI' if st.session_state.mode=='Experimental dynamic NPI' else 'fixed NPI snapshot'))
- if pending:st.info(f'{pending} games are undecided. The field below is ONE illustrative completion (first branch), not a definitive selection. See the most frequent fields below.')
+ if pending:st.info(f'{pending} games are undecided. The field below is ONE illustrative completion (first branch), not a definitive selection. The preview selects higher-rated teams in unresolved games.')
  else:st.success('All modeled tournament games have winners. This is the single field under the current NPI values.')
  champs,aq,at,first_out=sample
  a,b=st.columns(2)
@@ -185,10 +199,15 @@ with tab1:
   st.dataframe(pd.DataFrame([{'Team':t,'NPI':round(npi[t],3),'Regional rank':npi_order.index(t)+1} for t in at]),hide_index=True,use_container_width=True)
  st.write('**UCCS:**', 'IN — at-large' if 'UCCS' in at else ('IN — automatic' if 'UCCS' in aq else 'OUT of this illustrative field'))
  if first_out:st.caption(f'First team out in this illustrative field: {first_out} (NPI {npi[first_out]:.3f})')
- st.markdown('#### Most frequent projected fields')
- top=[]
- for f,n in fields.most_common(12):top.append({'Scenarios':n,'Share':f'{n/total:.1%}','UCCS in field':'Yes' if 'UCCS' in f else 'No','Teams':', '.join(f)})
- st.dataframe(pd.DataFrame(top),hide_index=True,use_container_width=True)
+ st.markdown('#### Scenario analysis')
+ st.caption('Optional: analyze all remaining possible bracket outcomes. The page does not run this automatically.')
+ if st.button('Calculate scenarios',key='calculate_scenarios'):
+  with st.spinner('Analyzing remaining bracket combinations…'):
+   total,counts,fields,champ_stats,_=simulate(tuple(sorted(cleaned.items())),tuple(sorted(npi.items())))
+  st.metric('UCCS appears in modeled outcomes',f'{counts["in"]/total:.1%}')
+  top=[{'Scenarios':n,'Share':f'{n/total:.1%}','UCCS in field':'Yes' if 'UCCS' in f else 'No','Teams':', '.join(f)} for f,n in fields.most_common(12)]
+  st.dataframe(pd.DataFrame(top),hide_index=True,use_container_width=True)
+
 with tab2:
  st.subheader('Select game winners — advancement updates immediately')
  st.caption('Choose a winner for each matchup. The next round unlocks automatically. Changing an earlier winner clears incompatible later results.')
@@ -198,6 +217,9 @@ with tab2:
     label=f"{g['round']} · {g['id']}"
     if not a or not b:
      st.caption(f'{label} — awaiting earlier-round winner')
+     continue
+    if g.get('locked'):
+     st.markdown(f'**{label}:** {a} vs {b} — **{w} advances** 🔒')
      continue
     options=['— Undecided —',a,b]
     selected=st.selectbox(f'{label}  |  {a} vs {b}',options,index=(options.index(w) if w in options else 0),key='pick_'+g['id'])
@@ -222,11 +244,11 @@ with tab3:
    if b:contenders.add(b)
  ranking=[{'Rank':i+1,'Team':t,'Conference':CONF_OF.get(t,'—'),'NPI':round(npi[t],3),'Top 20':i<20,'AQ pathway':'Possible' if t in contenders and t not in eliminated else 'Not confirmed'} for i,t in enumerate(npi_order) if t in contenders]
  st.dataframe(pd.DataFrame(ranking),hide_index=True,use_container_width=True,height=650)
- st.caption('All 51 regional teams remain eligible for at-large selection in the model; the table focuses on top 20 and bracket contenders.')
+ st.caption('The November 5 screenshot provides updated ratings for the top 23. Lower-ranked teams retain the previous saved ratings until refreshed.')
 with tab5:
  st.subheader('Settings & Data')
  st.radio('NPI mode',['Experimental dynamic NPI','Published snapshot (fixed NPI)'],key='mode',horizontal=True)
- st.caption('Dynamic NPIs are estimates, not official NCAA ratings.')
+ st.caption('Dynamic NPIs are estimates, not official NCAA ratings. Published baseline: November 5 (top 23 from supplied screenshot).')
  st.markdown('#### Set game venue (relative to first-listed team)')
  for g,a,b,w in rows:
   if w and a and b and DEFAULT.get(g['id']) is None:
@@ -242,7 +264,7 @@ with tab5:
    if len(overlap)<40:raise ValueError(f'Only {len(overlap)} known teams matched; refusing partial update')
    st.session_state.npi.update({t:updated[t] for t in overlap})
    st.session_state.snapshot_date=snapshot_date
-   st.session_state.records.update({'Fort Lewis':'10-5-3','South Dakota Mines':'6-4-4'} if snapshot_date=='November 2' else {})
+   st.session_state.records={**st.session_state.records,**{r[0]:r[2] for r in TEAMS}}
    st.success(f'Updated {len(overlap)} regional NPIs from Inkblot ({snapshot_date}).')
    st.rerun()
   except Exception as exc:st.error(f'Inkblot refresh failed safely: {exc}')

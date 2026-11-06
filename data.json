@@ -4,161 +4,161 @@
       "Cal State Los Angeles",
       "CCAA",
       "15-0-2",
-      63.311,
+      63.27,
       1
     ],
     [
       "CSU Pueblo",
       "RMAC",
-      "13-0-3",
-      62.299,
+      "13-1-3",
+      60.89,
       2
     ],
     [
       "Midwestern State",
       "LSC",
-      "14-0-4",
-      61.404,
+      "14-0-5",
+      60.851,
       3
-    ],
-    [
-      "Regis (CO)",
-      "RMAC",
-      "11-3-3",
-      59.888,
-      4
     ],
     [
       "Seattle Pacific",
       "GNAC",
-      "15-3-1",
-      59.538,
+      "16-3-1",
+      59.845,
+      4
+    ],
+    [
+      "Regis (CO)",
+      "RMAC",
+      "11-3-4",
+      59.429,
       5
     ],
     [
       "Cal State San Bernardino",
       "CCAA",
       "13-3-3",
-      57.473,
+      57.425,
       6
     ],
     [
       "UCCS",
       "RMAC",
       "10-3-6",
-      57.01,
+      56.994,
       7
     ],
     [
       "Western Oregon",
       "GNAC",
       "11-3-5",
-      56.728,
+      56.734,
       8
     ],
     [
       "Fort Lewis",
       "RMAC",
-      "10-5-3",
-      55.228,
+      "11-5-3",
+      56.427,
       9
+    ],
+    [
+      "UT Dallas",
+      "LSC",
+      "11-2-7",
+      55.507,
+      10
     ],
     [
       "Cal State Monterey Bay",
       "CCAA",
       "11-4-3",
-      55.418,
-      10
-    ],
-    [
-      "UT Dallas",
-      "LSC",
-      "11-2-6",
-      55.056,
+      55.336,
       11
-    ],
-    [
-      "Oklahoma Christian",
-      "LSC",
-      "9-3-4",
-      55.018,
-      12
-    ],
-    [
-      "Cal Poly Pomona",
-      "CCAA",
-      "8-5-5",
-      53.96,
-      13
     ],
     [
       "St. Mary's (TX)",
       "LSC",
-      "10-5-2",
-      53.93,
-      14
+      "11-5-2",
+      54.79,
+      12
+    ],
+    [
+      "Oklahoma Christian",
+      "LSC",
+      "9-4-4",
+      54.079,
+      13
     ],
     [
       "Northwest Nazarene",
       "GNAC",
       "8-5-6",
-      53.758,
+      53.927,
+      14
+    ],
+    [
+      "Cal Poly Pomona",
+      "CCAA",
+      "8-5-5",
+      53.894,
       15
     ],
     [
       "Cal State San Marcos",
       "CCAA",
       "11-6-1",
-      53.777,
+      53.742,
       16
+    ],
+    [
+      "Westminster (UT)",
+      "RMAC",
+      "8-7-5",
+      53.265,
+      17
     ],
     [
       "Simon Fraser",
       "GNAC",
-      "7-5-5",
-      53.624,
-      17
+      "7-6-5",
+      53.237,
+      18
     ],
     [
       "Metro State",
       "RMAC",
       "7-6-4",
-      52.948,
-      18
-    ],
-    [
-      "Westminster (UT)",
-      "RMAC",
-      "8-7-4",
-      52.93,
+      52.928,
       19
     ],
     [
       "Western Washington",
       "GNAC",
       "9-8-2",
-      52.529,
+      52.562,
       20
     ],
     [
       "Menlo",
       "CCAA",
       "9-6-3",
-      52.203,
+      52.201,
       21
     ],
     [
       "Colorado Mesa",
       "RMAC",
       "4-4-9",
-      51.845,
+      51.892,
       22
     ],
     [
       "South Dakota Mines",
       "RMAC",
       "6-4-4",
-      51.793,
+      51.876,
       23
     ],
     [
@@ -389,7 +389,8 @@
       "round": "Semifinal",
       "a": "Simon Fraser",
       "b": "Seattle Pacific",
-      "winner": null
+      "winner": "Seattle Pacific",
+      "locked": true
     },
     {
       "id": "GNAC-F",
@@ -405,7 +406,8 @@
       "round": "Quarterfinal",
       "a": "St. Mary's (TX)",
       "b": "Dallas Baptist",
-      "winner": "St. Mary's (TX)"
+      "winner": "St. Mary's (TX)",
+      "locked": true
     },
     {
       "id": "LSC-QF2",
@@ -413,7 +415,8 @@
       "round": "Quarterfinal",
       "a": "UT Dallas",
       "b": "St. Edward's",
-      "winner": "UT Dallas"
+      "winner": "UT Dallas",
+      "locked": true
     },
     {
       "id": "LSC-SF1",
@@ -421,7 +424,8 @@
       "round": "Semifinal",
       "a": "Midwestern State",
       "b": "LSC-QF2",
-      "winner": null
+      "winner": "Midwestern State",
+      "locked": true
     },
     {
       "id": "LSC-SF2",
@@ -429,7 +433,8 @@
       "round": "Semifinal",
       "a": "Oklahoma Christian",
       "b": "LSC-QF1",
-      "winner": null
+      "winner": "St. Mary's (TX)",
+      "locked": true
     },
     {
       "id": "LSC-F",
@@ -445,7 +450,8 @@
       "round": "Semifinal",
       "a": "Hawaii Pacific",
       "b": "Dominican (CA)",
-      "winner": null
+      "winner": "Hawaii Pacific",
+      "locked": true
     },
     {
       "id": "PWC-SF2",
@@ -453,7 +459,8 @@
       "round": "Semifinal",
       "a": "Vanguard",
       "b": "Westmont",
-      "winner": null
+      "winner": "Vanguard",
+      "locked": true
     },
     {
       "id": "PWC-F",
@@ -469,7 +476,8 @@
       "round": "Quarterfinal",
       "a": "UCCS",
       "b": "Westminster (UT)",
-      "winner": "Westminster (UT)"
+      "winner": "Westminster (UT)",
+      "locked": true
     },
     {
       "id": "RMAC-QF2",
@@ -480,7 +488,8 @@
       "winner": "Fort Lewis",
       "result": "TIE",
       "score": "draw, Fort Lewis advances on penalties",
-      "venue": "N"
+      "venue": "N",
+      "locked": true
     },
     {
       "id": "RMAC-SF1",
@@ -488,7 +497,8 @@
       "round": "Semifinal",
       "a": "Regis (CO)",
       "b": "RMAC-QF1",
-      "winner": null
+      "winner": "Regis (CO)",
+      "locked": true
     },
     {
       "id": "RMAC-SF2",
@@ -496,7 +506,8 @@
       "round": "Semifinal",
       "a": "CSU Pueblo",
       "b": "RMAC-QF2",
-      "winner": null
+      "winner": "Fort Lewis",
+      "locked": true
     },
     {
       "id": "RMAC-F",
@@ -506,5 +517,7 @@
       "b": "RMAC-SF2",
       "winner": null
     }
-  ]
+  ],
+  "snapshot_date": "November 5, 2026",
+  "source": "User-provided Inkblot screenshot (top 23); remaining team ratings retained from prior snapshot"
 }
