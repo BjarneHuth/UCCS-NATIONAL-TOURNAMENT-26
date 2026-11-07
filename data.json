@@ -3,162 +3,162 @@
     [
       "Cal State Los Angeles",
       "CCAA",
-      "15-0-2",
-      63.27,
+      "16-0-2",
+      63.33,
       1
     ],
     [
       "CSU Pueblo",
       "RMAC",
       "13-1-3",
-      60.89,
+      60.88,
       2
     ],
     [
       "Midwestern State",
       "LSC",
       "14-0-5",
-      60.851,
+      60.841,
       3
     ],
     [
       "Seattle Pacific",
       "GNAC",
       "16-3-1",
-      59.845,
+      59.801,
       4
     ],
     [
       "Regis (CO)",
       "RMAC",
       "11-3-4",
-      59.429,
+      59.444,
       5
     ],
     [
       "Cal State San Bernardino",
       "CCAA",
-      "13-3-3",
-      57.425,
+      "14-3-3",
+      57.805,
       6
     ],
     [
       "UCCS",
       "RMAC",
       "10-3-6",
-      56.994,
+      56.986,
       7
     ],
     [
       "Western Oregon",
       "GNAC",
       "11-3-5",
-      56.734,
+      56.589,
       8
     ],
     [
       "Fort Lewis",
       "RMAC",
       "11-5-3",
-      56.427,
+      56.416,
       9
     ],
     [
       "UT Dallas",
       "LSC",
       "11-2-7",
-      55.507,
+      55.496,
       10
     ],
     [
       "Cal State Monterey Bay",
       "CCAA",
       "11-4-3",
-      55.336,
+      55.282,
       11
     ],
     [
       "St. Mary's (TX)",
       "LSC",
       "11-5-2",
-      54.79,
+      54.778,
       12
     ],
     [
       "Oklahoma Christian",
       "LSC",
       "9-4-4",
-      54.079,
+      54.066,
       13
     ],
     [
       "Northwest Nazarene",
       "GNAC",
       "8-5-6",
-      53.927,
+      53.875,
       14
-    ],
-    [
-      "Cal Poly Pomona",
-      "CCAA",
-      "8-5-5",
-      53.894,
-      15
     ],
     [
       "Cal State San Marcos",
       "CCAA",
       "11-6-1",
-      53.742,
+      53.66,
+      15
+    ],
+    [
+      "Cal Poly Pomona",
+      "CCAA",
+      "8-6-5",
+      53.247,
       16
     ],
     [
       "Westminster (UT)",
       "RMAC",
       "8-7-5",
-      53.265,
+      53.245,
       17
     ],
     [
       "Simon Fraser",
       "GNAC",
       "7-6-5",
-      53.237,
+      53.193,
       18
     ],
     [
       "Metro State",
       "RMAC",
       "7-6-4",
-      52.928,
+      52.911,
       19
     ],
     [
       "Western Washington",
       "GNAC",
       "9-8-2",
-      52.562,
+      52.521,
       20
     ],
     [
       "Menlo",
       "CCAA",
-      "9-6-3",
-      52.201,
+      "9-7-3",
+      51.893,
       21
     ],
     [
       "Colorado Mesa",
       "RMAC",
       "4-4-9",
-      51.892,
+      51.876,
       22
     ],
     [
       "South Dakota Mines",
       "RMAC",
       "6-4-4",
-      51.876,
+      51.864,
       23
     ],
     [
@@ -365,7 +365,9 @@
       "round": "Semifinal",
       "a": "Cal State Los Angeles",
       "b": "Menlo",
-      "winner": null
+      "winner": "Cal State Los Angeles",
+      "locked": true,
+      "score": "4-1"
     },
     {
       "id": "CCAA-SF2",
@@ -373,7 +375,9 @@
       "round": "Semifinal",
       "a": "Cal Poly Pomona",
       "b": "Cal State San Bernardino",
-      "winner": null
+      "winner": "Cal State San Bernardino",
+      "locked": true,
+      "score": "3-1"
     },
     {
       "id": "CCAA-F",
@@ -518,7 +522,7 @@
       "winner": null
     }
   ],
-  "snapshot_date": "November 5, 2026",
-  "source": "User-provided Inkblot screenshot (top 23); remaining team ratings retained from prior snapshot",
-  "data_version": "2026-11-06-westmont-regional-bracket-v2"
+  "snapshot_date": "November 6, 2026",
+  "source": "Inkblot Super Region 4 screenshot supplied by user, through November 6; top 23 updated",
+  "data_version": "2026-11-06-ccaa-semifinals-locked"
 }
